@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker | Botrex.pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
+    <style>
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        .scale-on-hover:hover {
+            transform: scale(1.02);
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        .max-h-80 {
+            max-height: 20rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-chart-pie text-2xl"></i>
+                    <a href="https://www.botrex.pro" class="text-xl font-bold">Expense<span class="text-blue-200">Tracker</span></a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" placeholder="Search transactions..." class="px-4 py-2 rounded-full text-sm text-gray-800 focus:outline-none">
+                        <i class="fas fa-search absolute right-3 top-2.5 text-gray-500"></i>
+                    </div>
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-6">
+            <!-- Dashboard Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Financial Dashboard</h1>
+                    <p class="text-gray-600">Track your expenses and manage your budget</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <button id="add-expense-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition-all flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Add Expense
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6 transition-all scale-on-hover">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Spent</p>
+                            <h2 class="text-2xl font-bold text-gray-800" id="total-spent">$4,258.50</h2>
+                            <p class="text-sm"><span class="text-red-500"><i class="fas fa-arrow-up"></i> 12%</span> from last month</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 transition-all scale-on-hover">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Remaining Budget</p>
+                            <h2 class="text-2xl font-bold text-gray-800" id="remaining-budget">$1,741.50</h2>
+                            <p class="text-sm"><span class="text-green-500"><i class="fas fa-arrow-up"></i> 5%</span> budget utilization</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 transition-all scale-on-hover">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Transactions</p>
+                            <h2 class="text-2xl font-bold text-gray-800" id="total-transactions">48</h2>
+                            <p class="text-sm"><span class="text-blue-500"><i class="fas fa-arrow-up"></i> 8</span> new this week</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 transition-all scale-on-hover">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm">Largest Expense</p>
+                            <h2 class="text-2xl font-bold text-gray-800" id="largest-expense">$520.80</h2>
+                            <p class="text-sm"><span class="text-gray-600">Housing</span> category</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                            <i class="fas fa-home"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Monthly Overview Chart -->
+                <div class="bg-white rounded-lg shadow p-6 transition-all">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-800">Monthly Overview</h3>
+                        <div class="text-sm text-gray-600">
+                            <select id="month-select" class="bg-gray-100 rounded px-2 py-1 focus:outline-none">
+                                <option value="jan">January</option>
+                                <option value="feb">February</option>
+                                <option value="mar">March</option>
+                                <option value="apr">April</option>
+                                <option value="may" selected>May</option>
+                                <option value="jun">June</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="monthly-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Spending by Category -->
+                <div class="bg-white rounded-lg shadow p-6 transition-all">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-800">Spending by Category</h3>
+                        <button class="text-blue-600 text-sm hover:text-blue-800">
+                            <i class="fas fa-sync-alt mr-1"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions & Budget Progress -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Recent Transactions -->
+                <div class="lg:col-span-2 bg-white rounded-lg shadow transition-all">
+                    <div class="p-6 border-b">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800">Recent Transactions</h3>
+                            <div class="flex space-x-2">
+                                <select id="filter-category" class="bg-gray-100 rounded px-2 py-1 text-sm focus:outline-none">
+                                    <option value="all">All Categories</option>
+                                    <option value="food">Food & Dining</option>
+                                    <option value="transport">Transportation</option>
+                                    <option value="housing">Housing</option>
+                                    <option value="utilities">Utilities</option>
+                                    <option value="entertainment">Entertainment</option>
+                                </select>
+                                <select id="filter-date" class="bg-gray-100 rounded px-2 py-1 text-sm focus:outline-none">
+                                    <option value="all">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week" selected>This Week</option>
+                                    <option value="month">This Month</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                        <table class="w-full" id="transactions-table">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th class="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th class="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="p-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <!-- Transaction rows will be added by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 border-t text-center">
+                        <button class="text-blue-600 text-sm hover:text-blue-800 font-medium">View All Transactions</button>
+                    </div>
+                </div>
+
+                <!-- Budget Progress -->
+                <div class="bg-white rounded-lg shadow p-6 transition-all">
+                    <h3 class="font-bold text-gray-800 mb-4">Budget Progress</h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Food & Dining</span>
+                                <span class="text-sm font-medium text-gray-800">$480 / $600</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-green-600 h-2.5 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Transportation</span>
+                                <span class="text-sm font-medium text-gray-800">$305 / $300</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-red-600 h-2.5 rounded-full" style="width: 101.6%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Housing</span>
+                                <span class="text-sm font-medium text-gray-800">$1250 / $1500</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: 83.3%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Utilities</span>
+                                <span class="text-sm font-medium text-gray-800">$180 / $200</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-yellow-600 h-2.5 rounded-full" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Entertainment</span>
+                                <span class="text-sm font-medium text-gray-800">$320 / $400</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-purple-600 h-2.5 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-4 border-t">
+                        <h4 class="font-medium text-gray-800 mb-3">Total Budget</h4>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm text-gray-600">May 2023</span>
+                            <span class="text-sm font-medium text-gray-800">$4,258.50 / $6,000</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 71%"></div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">29% of budget remaining</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-6">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mb-4 md:mb-0">
+                        <a href="https://www.botrex.pro" class="text-lg font-bold">Expense<span class="text-blue-400">Tracker</span></a>
+                        <p class="text-gray-400 text-sm mt-1">Manage your finances with ease</p>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="https://www.botrex.pro" class="hover:text-blue-400 transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://www.botrex.pro" class="hover:text-blue-400 transition-colors">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="https://www.botrex.pro" class="hover:text-blue-400 transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://www.botrex.pro" class="hover:text-blue-400 transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="mt-4 text-center text-gray-400 text-sm">
+                    <p>© 2023 <a href="https://www.botrex.pro" class="hover:text-blue-400">Botrex.pro</a>. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="expense-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-gray-800">Add New Expense</h3>
+                    <button id="close-modal" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <form id="expense-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                            Description
+                        </label>
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="description" type="text" placeholder="Description of expense">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="amount">
+                            Amount ($)
+                        </label>
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="amount" type="number" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="category">
+                            Category
+                        </label>
+                        <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="category">
+                            <option value="food">Food & Dining</option>
+                            <option value="transport">Transportation</option>
+                            <option value="housing">Housing</option>
+                            <option value="utilities">Utilities</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="date">
+                            Date
+                        </label>
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="date" type="date">
+                    </div>
+                    <div class="flex justify-end">
+                        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2" type="button" id="cancel-expense">
+                            Cancel
+                        </button>
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
+                            Add Expense
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample transaction data
+        const transactions = [
+            { id: 1, description: "Grocery Shopping", category: "food", date: "2023-05-15", amount: 78.50, icon: "fas fa-shopping-basket" },
+            { id: 2, description: "Monthly Rent", category: "housing", date: "2023-05-01", amount: 1250.00, icon: "fas fa-home" },
+            { id: 3, description: "Gas Station", category: "transport", date: "2023-05-14", amount: 45.75, icon: "fas fa-gas-pump" },
+            { id: 4, description: "Netflix Subscription", category: "entertainment", date: "2023-05-10", amount: 14.99, icon: "fas fa-film" },
+            { id: 5, description: "Electric Bill", category: "utilities", date: "2023-05-05", amount: 95.40, icon: "fas fa-bolt" },
+            { id: 6, description: "Dinner at Restaurant", category: "food", date: "2023-05-13", amount: 65.30, icon: "fas fa-utensils" },
+            { id: 7, description: "Uber Ride", category: "transport", date: "2023-05-12", amount: 24.50, icon: "fas fa-taxi" },
+            { id: 8, description: "Movie Tickets", category: "entertainment", date: "2023-05-11", amount: 32.00, icon: "fas fa-ticket-alt" },
+            { id: 9, description: "Water Bill", category: "utilities", date: "2023-05-07", amount: 45.80, icon: "fas fa-tint" },
+            { id: 10, description: "Lunch at Cafe", category: "food", date: "2023-05-09", amount: 12.40, icon: "fas fa-coffee" }
+        ];
+
+        // Category colors
+        const categoryColors = {
+            food: 'rgb(54, 162, 235)',
+            transport: 'rgb(255, 159, 64)',
+            housing: 'rgb(255, 99, 132)',
+            utilities: 'rgb(255, 205, 86)',
+            entertainment: 'rgb(153, 102, 255)',
+            other: 'rgb(201, 203, 207)'
+        };
+
+        // Initialize expense form date to today
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            
+            // Initialize charts and tables
+            initializeCharts();
+            populateTransactionsTable(transactions);
+            
+            // Setup event listeners
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Modal Controls
+            document.getElementById('add-expense-btn').addEventListener('click', function() {
+                document.getElementById('expense-modal').classList.remove('hidden');
+            });
+
+            document.getElementById('close-modal').addEventListener('click', function() {
+                document.getElementById('expense-modal').classList.add('hidden');
+            });
+
+            document.getElementById('cancel-expense').addEventListener('click', function() {
+                document.getElementById('expense-modal').classList.add('hidden');
+            });
+
+            // Form submission
+            document.getElementById('expense-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addNewExpense();
+            });
+
+            // Filters
+            document.getElementById('filter-category').addEventListener('change', filterTransactions);
+            document.getElementById('filter-date').addEventListener('change', filterTransactions);
+            
+            // Chart period change
+            document.getElementById('month-select').addEventListener('change', initializeCharts);
+        }
+
+        function addNewExpense() {
+            const description = document.getElementById('description').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const category = document.getElementById('category').value;
+            const date = document.getElementById('date').value;
+            
+            if(!description || isNaN(amount) || amount <= 0 || !date) {
+                alert('Please fill in all fields with valid values');
+                return;
+            }
+            
+            // Add new transaction to the array
+            const newTransaction = {
+                id: transactions.length + 1,
+                description: description,
+                category: category,
+                date: date,
+                amount: amount,
+                icon: getCategoryIcon(category)
+            };
+            
+            transactions.unshift(newTransaction);
+            
+            // Update UI
+            populateTransactionsTable(transactions);
+            updateTotalSpent();
+            initializeCharts();
+            
+            // Reset form and close modal
+            document.getElementById('expense-form').reset();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            document.getElementById('expense-modal').classList.add('hidden');
+            
+            // Show confirmation
+            alert('Expense added successfully!');
+        }
+
+        function getCategoryIcon(category) {
+            switch(category) {
+                case 'food': return 'fas fa-utensils';
+                case 'transport': return 'fas fa-car';
+                case 'housing': return 'fas fa-home';
+                case 'utilities': return 'fas fa-bolt';
+                case 'entertainment': return 'fas fa-film';
+                default: return 'fas fa-tag';
+            }
+        }
+        
+        function getCategoryName(category) {
+            switch(category) {
+                case 'food': return 'Food & Dining';
+                case 'transport': return 'Transportation';
+                case 'housing': return 'Housing';
+                case 'utilities': return 'Utilities';
+                case 'entertainment': return 'Entertainment';
+                default: return 'Other';
+            }
+        }
+
+        function filterTransactions() {
+            const categoryFilter = document.getElementById('filter-category').value;
+            const dateFilter = document.getElementById('filter-date').value;
+            
+            let filteredTransactions = [...transactions];
+            
+            // Apply category filter
+            if(categoryFilter !== 'all') {
+                filteredTransactions = filteredTransactions.filter(t => t.category === categoryFilter);
+            }
+            
+            // Apply date filter
+            if(dateFilter !== 'all') {
+                const today = new Date();
+                const currentDate = today.toISOString().split('T')[0];
+                
+                if(dateFilter === 'today') {
+                    filteredTransactions = filteredTransactions.filter(t => t.date === currentDate);
+                } else if(dateFilter === 'week') {
+                    const oneWeekAgo = new Date(today);
+                    oneWeekAgo.setDate(today.getDate() - 7);
+                    filteredTransactions = filteredTransactions.filter(t => new Date(t.date) >= oneWeekAgo);
+                } else if(dateFilter === 'month') {
+                    const oneMonthAgo = new Date(today);
+                    oneMonthAgo.setMonth(today.getMonth() - 1);
+                    filteredTransactions = filteredTransactions.filter(t => new Date(t.date) >= oneMonthAgo);
+                }
+            }
+            
+            populateTransactionsTable(filteredTransactions);
+        }
+
+        function populateTransactionsTable(data) {
+            const tableBody = document.getElementById('transactions-table').querySelector('tbody');
+            tableBody.innerHTML = '';
+            
+            if(data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" class="p-4 text-center text-gray-500">No transactions found</td>
+                `;
+                tableBody.appendChild(row);
+                return;
+            }
+            
+            data.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                const formattedDate = new Date(transaction.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                row.innerHTML = `
+                    <td class="p-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-${getCategoryColor(transaction.category)}-100 flex items-center justify-center text-${getCategoryColor(transaction.category)}-600">
+                                <i class="${transaction.icon}"></i>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${transaction.description}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${getCategoryColor(transaction.category)}-100 text-${getCategoryColor(transaction.category)}-800">
+                            ${getCategoryName(transaction.category)}
+                        </span>
+                    </td>
+                    <td class="p-4 text-sm text-gray-600">${formattedDate}</td>
+                    <td class="p-4 text-sm text-right font-medium text-gray-900">$${transaction.amount.toFixed(2)}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        function getCategoryColor(category) {
+            switch(category) {
+                case 'food': return 'blue';
+                case 'transport': return 'orange';
+                case 'housing': return 'red';
+                case 'utilities': return 'yellow';
+                case 'entertainment': return 'purple';
+                default: return 'gray';
+            }
+        }
+
+        function initializeCharts() {
+            initializeMonthlyChart();
+            initializeCategoryChart();
+        }
+
+        function initializeMonthlyChart() {
+            const ctx = document.getElementById('monthly-chart').getContext('2d');
+            
+            // Destroy previous chart instance if it exists
+            if (window.monthlyChart) {
+                window.monthlyChart.destroy();
+            }
+            
+            window.monthlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                    datasets: [{
+                        label: 'Expenses',
+                        data: [850, 1200, 950, 1100, 650],
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Budget',
+                        data: [1000, 1000, 1000, 1000, 1000],
+                        borderColor: 'rgba(107, 114, 128, 0.7)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `$${context.raw}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        function initializeCategoryChart() {
+            const ctx = document.getElementById('category-chart').getContext('2d');
+            
+            // Calculate totals by category
+            const categoryTotals = {};
+            transactions.forEach(t => {
+                if (!categoryTotals[t.category]) {
+                    categoryTotals[t.category] = 0;
+                }
+                categoryTotals[t.category] += t.amount;
+            });
+            
+            const categories = Object.keys(categoryTotals);
+            const data = categories.map(c => categoryTotals[c]);
+            const backgroundColors = categories.map(c => categoryColors[c]);
+            
+            // Destroy previous chart instance if it exists
+            if (window.categoryChart) {
+                window.categoryChart.destroy();
+            }
+            
+            window.categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories.map(getCategoryName),
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: 'white',
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = (context.raw / data.reduce((a, b) => a + b, 0) * 100).toFixed(1);
+                                    return `$${context.raw.toFixed(2)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function updateTotalSpent() {
+            const total = transactions.reduce((sum, t) => sum + t.amount, 0);
+            document.getElementById('total-spent').textContent = `$${total.toFixed(2)}`;
+            
+            // Update remaining budget
+            const budget = 6000; // Hardcoded monthly budget
+            const remaining = budget - total;
+            document.getElementById('remaining-budget').textContent = `$${remaining.toFixed(2)}`;
+            
+            document.getElementById('total-transactions').textContent = transactions.length;
+        }
+    </script>
+</body>
+</html>
